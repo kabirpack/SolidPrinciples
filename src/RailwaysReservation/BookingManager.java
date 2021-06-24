@@ -5,36 +5,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 public class BookingManager {
-    PassengerTrain selectedTrain;
+//    PassengerTrain selectedTrain;
     RailwayUtilities utilitiy = new RailwayUtilities();
     String prompt;
 
-    public ArrayList<Ticket> bookTicket(String trainNumber, UserAccount user, ArrayList<PassengerTrain> trainList, Ticket ticket) throws ParseException {
-        for(PassengerTrain train : trainList){
-            if(train.getTrainNumber().equals(trainNumber)){
-                 selectedTrain = train;
-            }
-        }
+    public ArrayList<Ticket> bookTicket(PassengerTrain selectedTrain, UserAccount user, Ticket ticket, int todayFlag) throws ParseException {
+        boolean isAvailableToday = true;
         ArrayList<Ticket> resultArray = new ArrayList<>();
-        if(selectedTrain.isBookingOpen(user.getSessionDay(), user.getSessionTime()) && selectedTrain.isAvailable(user.getSessionDay())){
+        if (todayFlag == 1){
+           isAvailableToday = selectedTrain.isBookingOpen(utilitiy.getDayByDate(ticket.getTicketDate()), user.getSessionTime());
+        }
+        if(isAvailableToday){
             Scanner sc = new Scanner(System.in);
-            System.out.println("Please Choose Starting Location");
-            ArrayList<String> routes = selectedTrain.getRoutes();
-            for(int i =0; i<routes.size()-1;i++){
-                System.out.println(i+1+"."+ routes.get(i));
-            }
-            int startingLocationChoice = sc.nextInt();
-            String startingLocation = routes.get(startingLocationChoice-1);
-
-            System.out.println("Please Choose Destination");
-            for(int i =startingLocationChoice+1; i<routes.size();i++){
-                int index = 1;
-                System.out.println((index++)+"."+ routes.get(i));
-            }
-            int destinationChoice = sc.nextInt();
-            String destination = routes.get(destinationChoice-1);
-
+            ticket.setTrainName(selectedTrain.getName());
+            ticket.setTrainNumber(selectedTrain.getTrainNumber());
+            ticket.setDepartureTime(selectedTrain.getSchedulebyDay(utilitiy.getDayByDate(ticket.getTicketDate())));
             int availableSeats = selectedTrain.getAvailableSeats().size();
+//            int availableSeats = 100;
             System.out.println("Enter Number of passengers");
             int passengerCount = sc.nextInt();
 
@@ -80,6 +67,9 @@ public class BookingManager {
                 return resultArray;
             }
         }
+        else{
+            System.out.println("Booking is closed as Chart is already prepared");
+        }
         return resultArray;
     }
 
@@ -95,6 +85,7 @@ public class BookingManager {
         }
         ticket.setPassengerList(passengers);
         ticket.setPnrNumber(utilitiy.generatePnrNumber("WL"));
+        ticket.setStatus("WAITINGLIST");
         train.addWaitingList(ticket.getPnrNumber());
         train.decrementWlSeats(psngCount);
         return ticket;
@@ -110,14 +101,39 @@ public class BookingManager {
             String passengerAge = utilitiy.getStringInput();
             passengers.put(passengerName, passengerAge);
         }
-        ticket.setPassengerList(passengers);
         ticket.setPnrNumber(utilitiy.generatePnrNumber("BK"));
-        train.addBookedSeats(ticket.getPnrNumber());
+        ArrayList<String> pnrSeatMap = new ArrayList<>();
+        HashMap<String,String> seatMap = new HashMap<>();
+        int i=0;
+        for(String psngr : passengers.keySet()){
+            seatMap.put(psngr,train.getAvailableSeats().get(i));
+            pnrSeatMap.add(train.getAvailableSeats().get(i));
+            i=i+1;
+        }
+        int length = passengers.keySet().size();
+        for(int j=0; j<length;  j++){
+            train.removeAvailableSeat(j);
+            length--;
+        }
+        ticket.setSeatMap(seatMap);
+        ticket.setPassengerList(passengers);
+        ticket.setStatus("CONFIRMED");
+        train.addBookedSeats(ticket.getPnrNumber(),pnrSeatMap);
         train.decrementTotalSeats(psngCount);
         return ticket;
     }
 
-    public void cancelTicket(PassengerTrain train, String pnr){
-        train.removeBookedSeats(pnr);
+    public void cancelTicket(PassengerTrain train, Ticket ticket, int passengerCount){
+        System.out.println("before cancelling booked pnr" + train.getBookedSeats());
+        train.removeBookedSeats(ticket.getPnrNumber());
+        System.out.println("after cancelling booked pnr" + train.getBookedSeats());
+        System.out.println("before cancelling total seats" + train.getTotalSeats());
+        train.incrementTotalSeats(passengerCount);
+        System.out.println("after cancelling total seats" + train.getTotalSeats());
+        System.out.println("before cancelling available seats" + train.getAvailableSeats());
+        for(String seat : ticket.getSeatMap().values()){
+            train.getAvailableSeats().add(seat);
+        }
+        System.out.println("after cancelling available seats" + train.getAvailableSeats());
     }
 }

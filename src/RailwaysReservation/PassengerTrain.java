@@ -4,17 +4,18 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 public class PassengerTrain extends Train{
 
     private int totalSeats;
     private int acSeats;
-    private int wlSeats;
+    private int wlSeats = 20;
 //    private ArrayList<Ticket> tickets = new ArrayList<Ticket>();
-    private ArrayList<String> bookedSeats = new ArrayList<>();  // may change to hash map to map pnr to seats
+    private HashMap<String, ArrayList<String>> bookedSeats = new HashMap<>();  // may change to hash map to map pnr to seats
     private ArrayList<String> availableSeats = new ArrayList<>();
     private ArrayList<String> waitingList = new ArrayList<>(); // contain pnr number
-    private final int thresholdBookingTime = 5;
+    private final int thresholdBookingTime = 3;
     public PassengerTrain(String name, String trainNumber, String startLeg, String endLeg) {
         super(name, trainNumber, startLeg, endLeg);
     }
@@ -33,16 +34,16 @@ public class PassengerTrain extends Train{
             if(timeDifference < thresholdBookingTime){
                 return false;
             }
-        }else if(this.wlSeats == 0){
-            return false;
         }
         return true;
     }
 
     public boolean isSeatAvailable(String seat){
-        for(String bookedSeat : bookedSeats){
-            if (seat.equals(bookedSeat)){
-                return false;
+        for(ArrayList<String> bookedSeat : bookedSeats.values()){
+            for(String seats : bookedSeat) {
+                if (seat.equals(bookedSeat)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -69,13 +70,16 @@ public class PassengerTrain extends Train{
         this.wlSeats = wlSeats+1 ;
     }
 
-
-    public void addBookedSeats(String pnr) {
-        this.bookedSeats.add(pnr);
+    public void setBookedSeats(HashMap<String, ArrayList<String>> bookedSeats) {
+        this.bookedSeats = bookedSeats;
     }
 
     public void removeBookedSeats(String pnr) {
         this.bookedSeats.remove(pnr);
+    }
+
+    public void removeAvailableSeat(int i){
+        this.availableSeats.remove(i);
     }
 
 
@@ -92,6 +96,10 @@ public class PassengerTrain extends Train{
         return totalSeats;
     }
 
+    public void setTotalSeats(int totalSeats) {
+        this.totalSeats = totalSeats;
+    }
+
     public int getAcSeats() {
         return acSeats;
     }
@@ -100,8 +108,12 @@ public class PassengerTrain extends Train{
         return wlSeats;
     }
 
-    public ArrayList<String> getBookedSeats() {
+    public HashMap<String, ArrayList<String>> getBookedSeats() {
         return bookedSeats;
+    }
+
+    public void addBookedSeats(String pnr,ArrayList<String> seats){
+        this.bookedSeats.put(pnr,seats);
     }
 
     public ArrayList<String> getAvailableSeats() {

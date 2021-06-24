@@ -17,19 +17,36 @@ public class ServicesManager {
     }
 
     public void holdService(PassengerTrain train){
-        for(PassengerTrain availableTrain : trainList){
-            if(availableTrain.getTrainNumber().equals(train.getTrainNumber())){
-                availableTrain.setActive(false);
+        train.setActive(false);
+        System.out.println("Train holded successfully");
+    }
+
+    public void resumeService(PassengerTrain train){
+        train.setActive(true);
+        System.out.println("Train resumed successfully");
+    }
+
+    public ArrayList<PassengerTrain> getInactiveTrains(){
+        ArrayList<PassengerTrain> availableTrains = new ArrayList<>();
+        for(PassengerTrain train : trainList){
+            if(!train.isActive()){
+                availableTrains.add(train);
             }
+
         }
+        return availableTrains;
     }
 
 
-    public ArrayList<PassengerTrain> showAvailableServices(String day){
+    public ArrayList<PassengerTrain> showAvailableServices(String from, String to, String day){
         ArrayList<PassengerTrain> availableTrains = new ArrayList<>();
         for(PassengerTrain train : trainList){
             if(train.isActive() && train.isAvailable(day)){
-                availableTrains.add(train);
+//                for(String route : train.getRoutes()) {
+//                    if(route.contains(from) || route.contains(to)){
+                        availableTrains.add(train);
+//                    }
+//                }
             }
         }
         return availableTrains;
@@ -43,9 +60,64 @@ public class ServicesManager {
         for(PassengerTrain train : trainList){
             if(train.getTrainNumber().equals(number)){
                 PassengerTrain train1 = train;
+                return train1;
             }
         }
         PassengerTrain selectedTrain = new PassengerTrain("", "", "", "");
         return selectedTrain;
     }
+
+    public boolean isStationAvailable(String station){
+        if(station.length() >= 4) {
+            for (PassengerTrain train : trainList) {
+                if (train.isActive()) {
+                    for (String route : train.getRoutes()) {
+                        if (route.contains(station)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public String getStationFromSubstring(String station){
+        if(station.length() >= 4) {
+            for (PassengerTrain train : trainList) {
+                if (train.isActive()) {
+                    for (String route : train.getRoutes()) {
+                        if (route.contains(station)) {
+                            return route;
+                        }
+                    }
+                }
+            }
+        }
+        return "";
+    }
+
+    public void printFromLocations(){
+        for(PassengerTrain train : trainList){
+            if(train.isActive()){
+                for(int i=0; i<train.getRoutes().size()-1;i++){
+                    System.out.print(train.getRoutes().get(i) + ",");
+                    System.out.println(" ");
+                }
+            }
+        }
+    }
+
+    public void printToLocations(){
+        for(PassengerTrain train : trainList){
+            if(train.isActive()){
+                for(int i=1; i<train.getRoutes().size();i++){
+                    System.out.print(train.getRoutes().get(i) + ",");
+                    System.out.println(" ");
+                }
+            }
+        }
+    }
+
+
 }

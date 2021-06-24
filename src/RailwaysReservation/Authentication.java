@@ -16,23 +16,20 @@ public class Authentication {
     }
 
     public int authenicate(String username, String password){
-        System.out.println(credential.keySet());
+        isAdmin = false;
         for(String key : credential.keySet()){
+            System.out.println(key);
+
             if(key.equals(username)){
                 if(credential.get(username).equals(password)){
                     if(username.equals("admin")){
                         isAdmin = true;
                     }
                     return 1;
-                }else{
-                    return 2;
                 }
-            }else{
-                return 3;
             }
-
         }
-        return 3;
+        return 2;
     }
 
     public HashMap<String, String> getCredential() {

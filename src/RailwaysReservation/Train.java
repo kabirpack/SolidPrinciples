@@ -33,6 +33,7 @@ public abstract class Train {
         this.trainNumber = trainNumber;
         this.startLeg = startLeg;
         this.endLeg = endLeg;
+        this.isActive = true;
     }
 
     public boolean isAvailable(String day){
